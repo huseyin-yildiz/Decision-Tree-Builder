@@ -27,8 +27,7 @@ class Node:
         self.attribute_types = attribute_types
         self.left = None
         self.right = None
-        self.classes = np.unique(y)
-        self.class_label = None     # If the leaf node
+        self.class_label = None     # If the node is leaf node
 
         self.decision_value = None
         self.decision_type = None
@@ -37,7 +36,8 @@ class Node:
     # Calculate the entropy of the node with their data
     def calc_entropy(self):
         entropy = 0
-        for cls in self.classes:
+        classes = np.unique(self.y)
+        for cls in classes:
             probab = np.count_nonzero(self.y == cls) / self.y.size
             entropy -= probab * math.log2(probab)
         return entropy
@@ -83,8 +83,8 @@ class Node:
         else:
             raise TypeError("Attribute type is not valid. Only 1 and 2 is valid ")
 
-        left = Node(self.x[mask], self.y[mask], attribute_types)
-        right = Node(self.x[~mask], self.y[~mask], attribute_types)
+        left = Node(self.x[mask], self.y[mask], self.attribute_types)
+        right = Node(self.x[~mask], self.y[~mask], self.attribute_types)
 
         return (left, right)
     
