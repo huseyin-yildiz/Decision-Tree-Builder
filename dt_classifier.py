@@ -3,10 +3,13 @@ import math
 
 
 
+
 # Extract the midpoints from given feature column
 def get_midpoints(feature_data):
     # Sort the data in ascending order
     sorted_data = sorted(feature_data)
+    # Remove duplicates
+    sorted_data = np.unique(sorted_data)
     
     # Find midpoints between adjacent values
     midpoints = []
@@ -57,8 +60,17 @@ class Node:
             # Categoric
             elif(attribute == 2):             
                 uniques = np.unique(self.x[:,i])
-                split_pts +=  [ (i,x) for x in uniques ]
-            
+                
+                # Binary class --> just add one of them
+                if(len(uniques) == 2):
+                    split_pts.append( (i, uniques[0]) )
+                
+                # Multiclass --> add each one
+                elif(len(uniques) > 2):
+                    split_pts +=  [ (i,x) for x in uniques ]
+                
+                # If It has only one unique class for this data then do not add it to split points
+
             # Invalid attribute type
             else:
                 raise TypeError("Attribute type is not valid. Only 1 and 2 is valid ")
@@ -177,7 +189,7 @@ def generate_tree(node:Node , max_depth):
     # End of For : Best split found.
 
     # Place the children to the left and right 
-    node.left, node.right = node_left, node_right
+    node.left, node.right = nodes[0],nodes[1]
     
     # Place the decision value and data type on the node
     node.decision_value = best_split[1]
@@ -279,20 +291,26 @@ import numpy as np
 
 df1 = pd.read_csv("trial.csv")
 
+# Handling missing and NaN values
+# The values that can not cast to number will be NaN
+df1["LOCATION_ID"] = pd.to_numeric( df1["LOCATION_ID"], errors='coerce' ) 
+df1["LOCATION_ID"].isna().sum()
+df1 = df1.dropna()
+
 # Split x and y
 Y = df1["Risk"].values
-X = df1.drop("Risk",axis=1)
-X = df1.drop("LOCATION_ID",axis=1).values
+X = df1.drop("Risk",axis=1).values
 
+print(df1.info())
 
-attribute_types = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+attribute_types = [2,2,1,2,1,2,1,2,2,1,2,2,2,2,2,2,2]
+
 
 from sklearn.model_selection import KFold
 from sklearn.metrics import confusion_matrix, classification_report
 
 k_fold = KFold(n_splits=6, shuffle=True, random_state=42)
 
-print(X[1])
 
 for k, (train, test) in enumerate(k_fold.split(X, Y)):
   # Train
@@ -310,4 +328,7 @@ for k, (train, test) in enumerate(k_fold.split(X, Y)):
   print()
 
 
+"""
+In this part i implemented the DT builder mentioned in the class. All techniques and methods are same as told in the class. The main idea is finding middle points of all features and calculate them score by using left and right entropy and normalize them. Then we take the best split point until the node has entropy 0 or max depth is reached. This algorithm works recursively as shown in the class. My first aim here was learning. So i tried the codes to be understandable as much as possible. To ease understanding and implementation i used node class. It contains the data on the node and related member functions like calc_entropy, find_split_pts etc. You may follow the comment lines for better understandanding of code.
 
+"""

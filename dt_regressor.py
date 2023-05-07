@@ -95,10 +95,10 @@ class Node:
             raise TypeError("Attribute type is not valid. Only 1 and 2 is valid ")
 
         
-        if(len(self.x[mask]) == 0):
-            raise "split error"
-        if(len(self.x[~mask]) == 0):
-            raise "split error"
+        # if(len(self.x[mask]) == 0):
+        #     raise "split error"
+        # if(len(self.x[~mask]) == 0):
+        #     raise "split error"
         
 
         left = Node(self.x[mask], self.y[mask], self.attribute_types)
@@ -209,9 +209,9 @@ def generate_tree(node:Node , max_depth, error_limit):
 
 
 # DT regressor builder
-def buid_rdf(X, y, attribute_types, max_depth, error_limit):
+def buid_rdf(X, y, attribute_types, N, error_limit):
     root = Node(X,y,attribute_types)
-    generate_tree(root, max_depth, error_limit)
+    generate_tree(root, N, error_limit)
     return root
 
 
@@ -301,9 +301,6 @@ X = df1.drop("cnt",axis=1)
 X = X.drop("dteday",axis=1)
 X = X.drop("instant",axis=1)
 
-
-print(X.info())
-
 X = X.values
 
 attribute_types = [2,2,2,2,2,2,2,1,1,1,1,1,1]
@@ -318,16 +315,17 @@ k_fold = KFold(n_splits=6, shuffle=True, random_state=42)
 mean=0    
 
 for k, (train, test) in enumerate(k_fold.split(X, Y)):
+  print("\n\nFold",k,"Result:")
   # Train
-  dt = buid_rdf(X[train], Y[train], attribute_types, max_depth=5, error_limit=0)
+  dt = buid_rdf(X[train], Y[train], attribute_types, N=5, error_limit=0)
   y_pred = predict_rdf(dt, X[test])
-  print("\nResult:")
+  
   # Evaluate the model using R^2 score
   r2 = r2_score(Y[test], y_pred)
   print("R^2 score: {:.2f}".format(r2))
   mean += r2
 
 mean = mean / 6
-print("Mean R^2 score:", mean)
+print("\nMean R^2 score:", mean)
 
 
